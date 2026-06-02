@@ -1,9 +1,13 @@
-import requests
+"""
+This module creates an emotion detection function.
+"""
 import json
+import requests
 
 def emotion_detector(text_to_analyze):
+    """Analyze text and return emotion scores and dominant emotion."""
 
-    url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
+    url='https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
 
     header = {
         "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"
@@ -15,7 +19,19 @@ def emotion_detector(text_to_analyze):
         }
     }
 
-    response = requests.post(url, json=myobj, headers=header)
+    response = requests.post(url, json=myobj, headers=header, timeout=10)
+
+
+    # Handle 400 status code
+    if response.status_code == 400:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
 
     # Convert response text into Python dictionary
     formatted_response = json.loads(response.text)
@@ -23,6 +39,16 @@ def emotion_detector(text_to_analyze):
     # Extract emotion scores
     emotions = formatted_response['emotionPredictions'][0]['emotion']
 
+    # Handle no emotion detected
+    if emotions is None:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
     anger_score = emotions['anger']
     disgust_score = emotions['disgust']
     fear_score = emotions['fear']
